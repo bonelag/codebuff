@@ -84,6 +84,12 @@ export interface ModelRequestParams {
   skipChatGptOAuth?: boolean
   /** Cost mode (e.g. 'free') — affects fallback behavior for OAuth routes */
   costMode?: string
+  /** Local model base URL to bypass Codebuff backend */
+  localBaseUrl?: string
+  /** Local model API key */
+  localApiKey?: string
+  /** Override the model ID for local requests */
+  localModel?: string
 }
 
 /**
@@ -115,7 +121,26 @@ type OpenRouterUsageAccounting = {
 export async function getModelForRequest(
   params: ModelRequestParams,
 ): Promise<ModelResult> {
-  const { apiKey, model, skipChatGptOAuth, costMode } = params
+  const { apiKey, model, skipChatGptOAuth, costMode, localBaseUrl, localApiKey, localModel } = params
+  const resolvedLocalApiKey = localApiKey ?? apiKey ?? 'dummy-key'
+
+  // If local base URL is provided, bypass Codebuff backend entirely
+  if (localBaseUrl) {
+    return {
+      model: new OpenAICompatibleChatLanguageModel(localModel || model, {
+        provider: 'openai-local',
+        url: ({ path: endpoint }) => {
+          // Add trailing slash if missing so URL joining works correctly
+          const base = localBaseUrl.endsWith('/') ? localBaseUrl : `${localBaseUrl}/`
+          return new URL(endpoint, base).toString()
+        },
+        headers: () => ({
+          Authorization: `Bearer ${resolvedLocalApiKey}`,
+        }),
+      }),
+      isChatGptOAuth: false,
+    }
+  }
 
   // Check if we should use ChatGPT OAuth direct
   // Only attempt for allowlisted models; non-allowlisted models silently fall through to backend.

@@ -69,4 +69,7 @@ export type AgentRuntimeScopedDeps = {
   sendSubagentChunk: SendSubagentChunkFn
 
   apiKey: string
+  localBaseUrl?: string
+  localApiKey?: string
+  localModel?: string
 }

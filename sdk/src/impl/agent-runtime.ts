@@ -38,6 +38,8 @@ export function getAgentRuntimeImpl(
     | 'requestOptionalFile'
     | 'sendAction'
     | 'sendSubagentChunk'
+    | 'localBaseUrl'
+    | 'localApiKey'
   >,
 ): AgentRuntimeDeps & AgentRuntimeScopedDeps {
   const {
@@ -51,6 +53,8 @@ export function getAgentRuntimeImpl(
     requestOptionalFile,
     sendAction,
     sendSubagentChunk,
+    localBaseUrl,
+    localApiKey,
   } = params
 
   const trackSdkRuntimeEvent: TrackEventFn = (eventParams) => {
@@ -111,6 +115,8 @@ export function getAgentRuntimeImpl(
     sendSubagentChunk,
 
     apiKey,
+    localBaseUrl,
+    localApiKey,
   }
 }
 

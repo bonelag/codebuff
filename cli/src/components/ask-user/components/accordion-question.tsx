@@ -2,7 +2,8 @@
  * Accordion-style question component that can expand/collapse
  */
 
-import React, { useCallback } from 'react'
+import React, { useCallback, useRef, useEffect } from 'react'
+import type { ScrollBoxRenderable } from '@opentui/core'
 
 import { CustomAnswerInput } from './custom-answer-input'
 import { OptionsList } from './options-list'
@@ -108,6 +109,27 @@ export const AccordionQuestion: React.FC<AccordionQuestionProps> = ({
     [answer?.customText, customCursorPosition, onSetCustomText],
   )
 
+  const scrollRef = useRef<ScrollBoxRenderable | null>(null)
+
+  useEffect(() => {
+    if (focusedOptionIndex !== null && scrollRef.current) {
+      const scrollbox = scrollRef.current
+      const itemHeight = 1
+      const offset = question.multiSelect ? 1 : 0
+      const focusedTop = (focusedOptionIndex + offset) * itemHeight
+      const focusedBottom = focusedTop + itemHeight
+      
+      const viewportHeight = scrollbox.viewport.height
+      const currentScroll = scrollbox.scrollTop
+
+      if (focusedTop < currentScroll) {
+        scrollbox.scrollTop = Math.max(0, focusedTop)
+      } else if (focusedBottom > currentScroll + viewportHeight) {
+        scrollbox.scrollTop = focusedBottom - viewportHeight
+      }
+    }
+  }, [focusedOptionIndex, question.multiSelect])
+
   return (
     <box style={{ flexDirection: 'column', marginBottom: 1, width: '100%' }}>
       {/* Question header - always visible */}
@@ -123,16 +145,45 @@ export const AccordionQuestion: React.FC<AccordionQuestionProps> = ({
       {/* Expanded content - options */}
       {isExpanded && (
         <box style={{ flexDirection: 'column', width: '100%' }}>
-          <OptionsList
-            question={question}
-            answer={answer}
-            optionIndent={optionIndent}
-            focusedOptionIndex={focusedOptionIndex}
-            isTypingCustom={isTypingCustom}
-            onSelectOption={onSelectOption}
-            onToggleOption={onToggleOption}
-            onFocusOption={onFocusOption}
-          />
+          <scrollbox
+            ref={scrollRef}
+            scrollX={false}
+            scrollbarOptions={{ visible: false }}
+            verticalScrollbarOptions={{
+              visible: true,
+              trackOptions: { width: 1 },
+            }}
+            style={{
+              height: Math.min(question.options.length + 1 + (question.multiSelect ? 1 : 0), 10),
+              flexDirection: 'column',
+              width: '100%',
+              rootOptions: {
+                flexDirection: 'row',
+                backgroundColor: 'transparent',
+              },
+              wrapperOptions: {
+                border: false,
+                backgroundColor: 'transparent',
+                flexDirection: 'column',
+              },
+              contentOptions: {
+                flexDirection: 'column',
+                gap: 0,
+                backgroundColor: 'transparent',
+              },
+            }}
+          >
+            <OptionsList
+              question={question}
+              answer={answer}
+              optionIndent={optionIndent}
+              focusedOptionIndex={focusedOptionIndex}
+              isTypingCustom={isTypingCustom}
+              onSelectOption={onSelectOption}
+              onToggleOption={onToggleOption}
+              onFocusOption={onFocusOption}
+            />
+          </scrollbox>
 
           {/* Text input area when Custom is selected */}
           {isCustomSelected && (

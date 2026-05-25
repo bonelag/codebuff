@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { getCodebuffClient } from '../utils/codebuff-client'
+import { getCliEnv } from '../utils/env'
 import { logger } from '../utils/logger'
 
 // Adaptive health check interval configuration
@@ -57,6 +58,11 @@ export const useConnectionStatus = (
     const scheduleNextCheck = (interval: number) => {
       if (!isMounted) return
       timeoutId = setTimeout(() => checkConnection(), interval)
+    }
+
+    if (getCliEnv().CODEBUFF_OPENAI_BASE_URL) {
+      setIsConnected(true)
+      return
     }
 
     const checkConnection = async () => {

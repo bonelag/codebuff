@@ -140,6 +140,10 @@ export type ProcessEnv = BaseEnv & {
   OVERRIDE_TARGET?: string
   OVERRIDE_PLATFORM?: string
   OVERRIDE_ARCH?: string
+
+  // Local API / LLM bypass
+  CODEBUFF_OPENAI_BASE_URL?: string
+  CODEBUFF_OPENAI_API_KEY?: string
 }
 
 // =============================================================================

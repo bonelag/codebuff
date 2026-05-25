@@ -22,6 +22,7 @@ export type GetUserInfoFromApiKeyInput<T extends UserColumn> = {
   apiKey: string
   fields: readonly T[]
   logger: Logger
+  localBaseUrl?: string
 }
 export type GetUserInfoFromApiKeyOutput<T extends UserColumn> = Promise<
   | {

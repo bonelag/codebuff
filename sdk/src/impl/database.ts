@@ -99,6 +99,16 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
   params: GetUserInfoFromApiKeyInput<T>,
 ): GetUserInfoFromApiKeyOutput<T> {
   const { apiKey, fields, logger } = params
+  
+  if (params.localBaseUrl) {
+    // Return mock user info for local LLM bypass mode
+    return Object.fromEntries(
+      fields.map((field) => [
+        field,
+        field === 'id' ? 'local-user' : `mock-${field}`,
+      ]),
+    ) as Awaited<GetUserInfoFromApiKeyOutput<T>>
+  }
 
   const cached = userInfoCache[apiKey]
   if (cached === null) {

@@ -597,7 +597,6 @@ const ALL_COMMANDS: CommandDefinition[] = [
   // user picks a model and hits Enter to rejoin the queue.
   defineCommand({
     name: 'end-session',
-    aliases: ['model'],
     handler: (params) => {
       params.setMessages((prev) => [
         ...prev,
@@ -610,6 +609,92 @@ const ALL_COMMANDS: CommandDefinition[] = [
         // The hook surfaces poll errors via the session store; nothing to do
         // here beyond letting the chat history reflect the attempt.
       })
+    },
+  }),
+  defineCommand({
+    name: 'model',
+    aliases: ['models'],
+    handler: async (params) => {
+      const { getCliEnv } = await import('../utils/env')
+      const { AskUserBridge } = await import('@codebuff/common/utils/ask-user-bridge')
+      const { getProjectRoot } = await import('../project-files')
+      const fs = await import('fs')
+      const path = await import('path')
+
+      const env = getCliEnv()
+      if (!env.CODEBUFF_OPENAI_BASE_URL) {
+        params.setMessages((prev) => [
+          ...prev,
+          getUserMessage(params.inputValue.trim()),
+          getSystemMessage('Error: CODEBUFF_OPENAI_BASE_URL is not set. Please set it in your .env file to use the /model command.'),
+        ])
+        params.saveToHistory(params.inputValue.trim())
+        clearInput(params)
+        return
+      }
+
+      params.saveToHistory(params.inputValue.trim())
+      clearInput(params)
+
+      try {
+        const baseUrl = env.CODEBUFF_OPENAI_BASE_URL.replace(/\/$/, '')
+        const res = await fetch(`${baseUrl}/models`)
+        if (!res.ok) {
+          throw new Error(`Failed to fetch models: ${res.statusText}`)
+        }
+        const data = await res.json()
+        const models = data.data as Array<{ id: string }>
+
+        if (!models || models.length === 0) {
+          throw new Error('No models found from the API.')
+        }
+
+        const askUserResponse = await AskUserBridge.request('cli-model-selection', [
+          {
+            question: 'Select a local model:',
+            header: 'Local Model',
+            options: models.map(m => ({ label: m.id })),
+          }
+        ]) as any
+
+        if (askUserResponse?.skipped || (!askUserResponse?.answers?.[0]?.selectedOption && !askUserResponse?.answers?.[0]?.otherText)) {
+          params.setMessages((prev) => [
+            ...prev,
+            getSystemMessage('Model selection skipped.'),
+          ])
+          return
+        }
+
+        const selectedModel = askUserResponse.answers[0].selectedOption || askUserResponse.answers[0].otherText
+
+        // Update .env file
+        const root = getProjectRoot()
+        const envPath = path.join(root, '.env')
+        let envContent = ''
+        if (fs.existsSync(envPath)) {
+          envContent = fs.readFileSync(envPath, 'utf-8')
+        }
+        
+        if (envContent.includes('CODEBUFF_OPENAI_MODEL=')) {
+          envContent = envContent.replace(/CODEBUFF_OPENAI_MODEL=.*/g, `CODEBUFF_OPENAI_MODEL=${selectedModel}`)
+        } else {
+          envContent += `\nCODEBUFF_OPENAI_MODEL=${selectedModel}\n`
+        }
+        fs.writeFileSync(envPath, envContent)
+        
+        // Update process.env
+        process.env.CODEBUFF_OPENAI_MODEL = selectedModel
+
+        params.setMessages((prev) => [
+          ...prev,
+          getSystemMessage(`Model updated to ${selectedModel}.`),
+        ])
+      } catch (err: any) {
+        params.setMessages((prev) => [
+          ...prev,
+          getSystemMessage(`Error fetching models: ${err.message}`),
+        ])
+      }
     },
   }),
 ]

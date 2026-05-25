@@ -86,6 +86,10 @@ export const getProcessEnv = (): ProcessEnv => ({
   OVERRIDE_TARGET: process.env.OVERRIDE_TARGET,
   OVERRIDE_PLATFORM: process.env.OVERRIDE_PLATFORM,
   OVERRIDE_ARCH: process.env.OVERRIDE_ARCH,
+
+  // Local API / LLM bypass
+  CODEBUFF_OPENAI_BASE_URL: process.env.CODEBUFF_OPENAI_BASE_URL,
+  CODEBUFF_OPENAI_API_KEY: process.env.CODEBUFF_OPENAI_API_KEY,
 })
 
 /**

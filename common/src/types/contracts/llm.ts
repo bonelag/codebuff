@@ -66,6 +66,8 @@ export type PromptAiSdkStreamFn = (
      *  Used to forward client-scoped identifiers (e.g. `freebuff_instance_id`)
      *  that server-side gates read from the chat-completions body. */
     extraCodebuffMetadata?: Record<string, string>
+    localBaseUrl?: string
+    localApiKey?: string
     sendAction: SendActionFn
     logger: Logger
     trackEvent: TrackEventFn
@@ -98,6 +100,8 @@ export type PromptAiSdkFn = (
     maxRetries?: number
     /** Cost mode - 'free' mode means 0 credits charged for all agents */
     costMode?: string
+    localBaseUrl?: string
+    localApiKey?: string
     sendAction: SendActionFn
     logger: Logger
     trackEvent: TrackEventFn
@@ -132,6 +136,8 @@ export type PromptAiSdkStructuredInput<T> = {
   cacheDebugCorrelation?: string
   agentProviderOptions?: OpenRouterProviderRoutingOptions
   maxRetries?: number
+  localBaseUrl?: string
+  localApiKey?: string
   sendAction: SendActionFn
   logger: Logger
   trackEvent: TrackEventFn

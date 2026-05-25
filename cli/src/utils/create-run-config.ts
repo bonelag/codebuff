@@ -6,6 +6,7 @@ import {
   createEventHandler,
   createStreamChunkHandler,
 } from './sdk-event-handlers'
+import { getCliEnv } from './env'
 
 import type { EventHandlerState } from './sdk-event-handlers'
 import type { Logger } from '@codebuff/common/types/contracts/logger'
@@ -117,6 +118,7 @@ export const createRunConfig = (params: CreateRunConfigParams) => {
     handleStreamChunk: createStreamChunkHandler(eventHandlerState),
     handleEvent: createEventHandler(eventHandlerState),
     signal: params.signal,
+    env: getCliEnv() as unknown as Record<string, string>,
     costMode,
     extraCodebuffMetadata,
     fileFilter: ((filePath: string) => {

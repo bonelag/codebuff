@@ -177,8 +177,13 @@ const ALL_SLASH_COMMANDS: SlashCommand[] = [
   {
     id: 'end-session',
     label: 'end-session',
-    description: 'End your free session (lets you switch model)',
-    aliases: ['model'],
+    description: 'End your free session',
+  },
+  {
+    id: 'model',
+    label: 'model',
+    description: 'Select a local LLM model (requires CODEBUFF_OPENAI_BASE_URL)',
+    aliases: ['models'],
   },
   {
     id: 'logout',

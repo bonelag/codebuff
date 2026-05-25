@@ -74,6 +74,11 @@ export type CliEnv = BaseEnv & {
   CODEBUFF_SCROLL_MULTIPLIER?: string
   CODEBUFF_PERF_TEST?: string
   FREEBUFF_MODE?: string
+
+  // Local API / LLM bypass
+  CODEBUFF_OPENAI_BASE_URL?: string
+  CODEBUFF_OPENAI_API_KEY?: string
+  CODEBUFF_OPENAI_MODEL?: string
 }
 
 /**

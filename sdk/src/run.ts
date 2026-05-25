@@ -381,6 +381,9 @@ async function runOnce({
   const agentRuntimeImpl = getAgentRuntimeImpl({
     logger,
     apiKey,
+    localBaseUrl: env?.CODEBUFF_OPENAI_BASE_URL,
+    localApiKey: env?.CODEBUFF_OPENAI_API_KEY,
+    localModel: env?.CODEBUFF_OPENAI_MODEL,
     handleStepsLogChunk: () => {
       // Does nothing for now
     },
@@ -508,6 +511,7 @@ async function runOnce({
     ...agentRuntimeImpl,
     apiKey,
     fields: ['id'],
+    localBaseUrl: env?.CODEBUFF_OPENAI_BASE_URL,
   })
   if (!userInfo) {
     return getCancelledRunState('Invalid API key or user not found')

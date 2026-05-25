@@ -371,8 +371,9 @@ async function main(): Promise<void> {
 
     React.useEffect(() => {
       const apiKey = getAuthTokenDetails().token ?? ''
+      const hasLocalModel = !!getCliEnv().CODEBUFF_OPENAI_BASE_URL
 
-      if (!apiKey) {
+      if (!apiKey && !hasLocalModel) {
         setRequireAuth(true)
         setHasInvalidCredentials(false)
         return
