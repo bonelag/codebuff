@@ -42,6 +42,9 @@ export const getAgentStreamFromTemplate = (params: {
   promptAiSdkStream: PromptAiSdkStreamFn
   sendAction: SendActionFn
   trackEvent: TrackEventFn
+  localBaseUrl?: string
+  localApiKey?: string
+  localModel?: string
 }): ReturnType<PromptAiSdkStreamFn> => {
   const {
     agentId,
@@ -67,6 +70,9 @@ export const getAgentStreamFromTemplate = (params: {
     onCostCalculated,
     promptAiSdkStream,
     trackEvent,
+    localBaseUrl,
+    localApiKey,
+    localModel,
   } = params
 
   if (!template) {
@@ -103,6 +109,9 @@ export const getAgentStreamFromTemplate = (params: {
     onCostCalculated,
     sendAction,
     trackEvent,
+    localBaseUrl,
+    localApiKey,
+    localModel,
   }
 
   if (!aiSdkStreamParams.providerOptions) {

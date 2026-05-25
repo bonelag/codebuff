@@ -52,7 +52,7 @@ export type {
   LoadedMCPConfig,
 } from './agents/load-mcp-config'
 
-export { validateAgents } from './validate-agents'
+export { validateSdkAgents as validateAgents } from './validate-agents'
 export type { ValidationResult, ValidateAgentsOptions } from './validate-agents'
 
 // Error utilities

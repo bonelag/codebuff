@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 
 import { loadAgentDefinitions } from '../utils/local-agent-registry'
 import { logger } from '../utils/logger'
+import { getCliEnv } from '../utils/env'
 import { filterNetworkErrors } from '../utils/validation-error-helpers'
 
 export type ValidationError = {
@@ -39,8 +40,10 @@ export const useAgentValidation = (): UseAgentValidationResult => {
     try {
       const agentDefinitions = loadAgentDefinitions()
 
+      const env = getCliEnv()
+
       const validationResult = await validateAgents(agentDefinitions, {
-        remote: true,
+        remote: !env.CODEBUFF_OPENAI_BASE_URL,
       })
 
       if (validationResult.success) {

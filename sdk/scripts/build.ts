@@ -5,6 +5,7 @@ import { mkdir, cp, readFile, writeFile, rm } from 'fs/promises'
 import Module from 'module'
 import { delimiter, join } from 'path'
 
+import esbuild from 'esbuild'
 import { generateDtsBundle } from 'dts-bundle-generator'
 
 const workspaceNodeModules = join(import.meta.dir, '..', 'node_modules')
@@ -53,42 +54,47 @@ async function build() {
     'events',
   ]
 
+  const define: Record<string, string> = {}
+  for (const key of Object.keys(process.env)) {
+    if (key.startsWith('NEXT_PUBLIC_')) {
+      define[`process.env.${key}`] = JSON.stringify(process.env[key])
+    }
+  }
+
   console.log('📦 Building ESM format...')
-  await Bun.build({
-    entrypoints: ['src/index.ts'],
-    outdir: 'dist',
-    target: 'node',
+  await esbuild.build({
+    entryPoints: ['src/index.ts'],
+    outfile: 'dist/index.mjs',
+    bundle: true,
+    platform: 'node',
     format: 'esm',
     minify: false,
-    sourcemap: 'linked',
+    sourcemap: true,
     external,
-    naming: '[dir]/index.mjs',
-    env: 'NEXT_PUBLIC_*',
+    define,
     loader: {
       '.scm': 'text',
     },
-    plugins: [],
   })
 
   console.log('📦 Building CJS format...')
-  await Bun.build({
-    entrypoints: ['src/index.ts'],
-    outdir: 'dist',
-    target: 'node',
+  await esbuild.build({
+    entryPoints: ['src/index.ts'],
+    outfile: 'dist/index.cjs',
+    bundle: true,
+    platform: 'node',
     format: 'cjs',
     minify: false,
-    sourcemap: 'linked',
+    sourcemap: true,
     external,
-    naming: '[dir]/index.cjs',
     define: {
+      ...define,
       'import.meta.url': 'undefined',
       'import.meta': 'undefined',
     },
-    env: 'NEXT_PUBLIC_*',
     loader: {
       '.scm': 'text',
     },
-    plugins: [],
   })
 
   console.log('📝 Generating and bundling TypeScript declarations...')

@@ -68,6 +68,7 @@ export type PromptAiSdkStreamFn = (
     extraCodebuffMetadata?: Record<string, string>
     localBaseUrl?: string
     localApiKey?: string
+    localModel?: string
     sendAction: SendActionFn
     logger: Logger
     trackEvent: TrackEventFn
@@ -102,6 +103,7 @@ export type PromptAiSdkFn = (
     costMode?: string
     localBaseUrl?: string
     localApiKey?: string
+    localModel?: string
     sendAction: SendActionFn
     logger: Logger
     trackEvent: TrackEventFn
@@ -138,6 +140,7 @@ export type PromptAiSdkStructuredInput<T> = {
   maxRetries?: number
   localBaseUrl?: string
   localApiKey?: string
+  localModel?: string
   sendAction: SendActionFn
   logger: Logger
   trackEvent: TrackEventFn

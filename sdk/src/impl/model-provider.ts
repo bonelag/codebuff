@@ -130,9 +130,10 @@ export async function getModelForRequest(
       model: new OpenAICompatibleChatLanguageModel(localModel || model, {
         provider: 'openai-local',
         url: ({ path: endpoint }) => {
-          // Add trailing slash if missing so URL joining works correctly
+          // Add trailing slash to base if missing, remove leading slash from endpoint
           const base = localBaseUrl.endsWith('/') ? localBaseUrl : `${localBaseUrl}/`
-          return new URL(endpoint, base).toString()
+          const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint
+          return new URL(normalizedEndpoint, base).toString()
         },
         headers: () => ({
           Authorization: `Bearer ${resolvedLocalApiKey}`,

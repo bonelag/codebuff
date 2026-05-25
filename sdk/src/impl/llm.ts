@@ -324,6 +324,16 @@ export async function* promptAiSdkStream(
   const { model: aiSDKModel, isChatGptOAuth } =
     await getModelForRequest(modelParams)
 
+  if (params.localBaseUrl) {
+    logger.info(
+      {
+        localBaseUrl: params.localBaseUrl,
+        localModel: params.localModel || params.model,
+      },
+      'Routing prompt to local API endpoint',
+    )
+  }
+
   if (isChatGptOAuth) {
     trackEvent({
       event: AnalyticsEvent.CHATGPT_OAUTH_REQUEST,

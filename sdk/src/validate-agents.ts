@@ -1,5 +1,5 @@
 import {
-  validateAgents as validateAgentsCommon,
+  validateAgents as commonValidateAgents,
   type DynamicAgentValidationError,
 } from '@codebuff/common/templates/agent-validation'
 
@@ -53,7 +53,7 @@ export interface ValidateAgentsOptions {
  * })
  * ```
  */
-export async function validateAgents(
+export async function validateSdkAgents(
   definitions: AgentDefinition[],
   options?: ValidateAgentsOptions,
 ): Promise<ValidationResult> {
@@ -133,7 +133,7 @@ export async function validateAgents(
     }
   } else {
     // Local validation: use common package validation logic
-    const result = validateAgentsCommon({
+    const result = commonValidateAgents({
       agentTemplates,
       logger,
     })
@@ -153,3 +153,5 @@ export async function validateAgents(
     errorCount: transformedErrors.length,
   }
 }
+
+export { validateSdkAgents as validateAgents }

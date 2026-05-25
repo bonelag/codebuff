@@ -314,6 +314,10 @@ export async function startAgentRun(
 ): ReturnType<StartAgentRunFn> {
   const { apiKey, agentId, ancestorRunIds, logger } = params
 
+  if (apiKey === 'dummy-local-key') {
+    return crypto.randomUUID()
+  }
+
   const url = new URL(`/api/v1/agent-runs`, WEBSITE_URL)
 
   try {
@@ -368,6 +372,10 @@ export async function finishAgentRun(
     logger,
   } = params
 
+  if (apiKey === 'dummy-local-key') {
+    return
+  }
+
   const url = new URL(`/api/v1/agent-runs`, WEBSITE_URL)
 
   try {
@@ -417,6 +425,10 @@ export async function addAgentStep(
     startTime,
     logger,
   } = params
+
+  if (apiKey === 'dummy-local-key') {
+    return null
+  }
 
   const url = new URL(`/api/v1/agent-runs/${agentRunId}/steps`, WEBSITE_URL)
 

@@ -46,7 +46,13 @@ export function resetCodebuffClient(): void {
 
 export async function getCodebuffClient(): Promise<CodebuffClient | null> {
   if (!clientInstance) {
-    const { token: apiKey } = getAuthTokenDetails()
+    let { token: apiKey } = getAuthTokenDetails()
+    const env = getCliEnv()
+
+    // If using local model, inject a dummy key so the client doesn't complain about auth
+    if (!apiKey && env.CODEBUFF_OPENAI_BASE_URL) {
+      apiKey = 'dummy-local-key'
+    }
 
     if (!apiKey) {
       logger.warn(
@@ -59,7 +65,6 @@ export async function getCodebuffClient(): Promise<CodebuffClient | null> {
     const projectRoot = getProjectRoot()
 
     // Set up ripgrep path for SDK to use
-    const env = getCliEnv()
     if (env.CODEBUFF_IS_BINARY) {
       try {
         const rgPath = await getRgPath()
