@@ -654,6 +654,7 @@ const ALL_COMMANDS: CommandDefinition[] = [
             question: 'Select a local model:',
             header: 'Local Model',
             options: models.map(m => ({ label: m.id })),
+            multiSelect: false,
           }
         ]) as any
 

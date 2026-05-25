@@ -57,6 +57,7 @@ export default function RootLayout({
   return (
     <html lang={'en'} suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={cn(
           'flex flex-col min-h-screen font-sans bg-white text-black dark:bg-black dark:text-white',
           fonts,

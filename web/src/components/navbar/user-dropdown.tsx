@@ -27,14 +27,20 @@ export const UserDropdown = ({ session: { user } }: { session: Session }) => {
       <DropdownMenuTrigger>
         <div className="relative group">
           <div className="absolute inset-0 bg-[rgb(255,110,11)] translate-x-0.5 -translate-y-0.5 rounded-md"></div>
-          <div className="relative bg-white border border-white/50 rounded-md overflow-hidden transition-all duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5">
-            <Image
-              className="w-8 h-8"
-              src={`${user?.image}`}
-              alt={`${user?.name}`}
-              width={32}
-              height={32}
-            />
+          <div className="relative bg-white border border-white/50 rounded-md overflow-hidden transition-all duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5 w-8 h-8 flex items-center justify-center">
+            {user?.image ? (
+              <Image
+                className="w-8 h-8"
+                src={user.image}
+                alt={user.name || 'User'}
+                width={32}
+                height={32}
+              />
+            ) : (
+              <div className="w-8 h-8 flex items-center justify-center bg-zinc-800 text-zinc-200 font-bold text-sm uppercase">
+                {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+              </div>
+            )}
           </div>
         </div>
       </DropdownMenuTrigger>

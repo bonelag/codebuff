@@ -1,7 +1,7 @@
 .DS_Store
 .idea/
 .vercel
-
+src/db/migrations
 # Environment files (secrets) - Bun loads .env.* files natively
 .env
 .env.*

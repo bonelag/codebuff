@@ -20,6 +20,7 @@ import { useTheme } from './hooks/use-theme'
 import { getProjectRoot } from './project-files'
 import { useChatHistoryStore } from './state/chat-history-store'
 import { useChatStore } from './state/chat-store'
+import { useFreebuffModelStore } from './state/freebuff-model-store'
 import type { TopBannerType } from './types/store'
 import { IS_FREEBUFF } from './utils/constants'
 import { findGitRoot } from './utils/git'
@@ -59,6 +60,7 @@ export const App = ({
 }: AppProps) => {
   const { contentMaxWidth, terminalWidth } = useTerminalDimensions()
   const theme = useTheme()
+  const selectedFreebuffModel = useFreebuffModelStore((s) => s.selectedModel)
 
   // Sheen animation state for the logo
   const [sheenPosition, setSheenPosition] = useState(0)
@@ -204,6 +206,9 @@ export const App = ({
 
   const headerContent = useMemo(() => {
     const displayPath = formatCwd(projectRoot)
+    const modelToShow = IS_FREEBUFF
+      ? selectedFreebuffModel
+      : (process.env.CODEBUFF_OPENAI_MODEL || 'default')
 
     return (
       <box
@@ -240,9 +245,15 @@ export const App = ({
             onActivate={() => openFileAtPath(projectRoot)}
           />
         </text>
+        <text
+          style={{ wrapMode: 'word', marginBottom: 1, fg: theme.foreground }}
+        >
+          Model:{' '}
+          <span fg={theme.success}>{modelToShow}</span>
+        </text>
       </box>
     )
-  }, [logoComponent, projectRoot, theme])
+  }, [logoComponent, projectRoot, theme, selectedFreebuffModel])
 
   // Derive auth reachability + retrying state from authQuery error
   const authError = authQuery.error

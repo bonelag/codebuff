@@ -1,5 +1,9 @@
 import { SUBSCRIPTION_DISPLAY_NAME } from '@codebuff/common/constants/subscription-plans'
+import { getEncoding } from 'js-tiktoken'
 import { IS_FREEBUFF } from '../utils/constants'
+
+const tokenizer = getEncoding('cl100k_base')
+import { useFreebuffModelStore } from '../state/freebuff-model-store'
 import { pluralize } from '@codebuff/common/util/string'
 import { TextAttributes } from '@opentui/core'
 import React, { useCallback, useMemo } from 'react'
@@ -48,6 +52,7 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({
   onCloseFeedback,
 }) => {
   const theme = useTheme()
+  const selectedFreebuffModel = useFreebuffModelStore((s) => s.selectedModel)
 
   // Memoize selectors to prevent new function references on every render
   const selectIsFeedbackOpenMemo = useMemo(
@@ -101,6 +106,36 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({
     .filter(Boolean)
     .join('\n\n')
     .trim()
+
+  // Thu thập đệ quy toàn bộ text bao gồm cả thinking block, plan block
+  const allAiText = useMemo(() => {
+    const parts: string[] = []
+    if (content) parts.push(content)
+    if (blocks) {
+      const collect = (blks: typeof blocks) => {
+        for (const b of blks) {
+          if (b.type === 'text') {
+            parts.push(b.content)
+          } else if (b.type === 'plan') {
+            parts.push(b.content)
+          } else if (b.type === 'agent' && b.blocks) {
+            collect(b.blocks)
+          }
+        }
+      }
+      collect(blocks)
+    }
+    return parts.filter(Boolean).join('\n\n').trim()
+  }, [content, blocks])
+
+  const calculatedTokens = useMemo(() => {
+    if (!allAiText) return 0
+    try {
+      return tokenizer.encode(allAiText).length
+    } catch (e) {
+      return Math.max(1, Math.round(allAiText.length / 3.8))
+    }
+  }, [allAiText])
 
   // Loading timer
   if (shouldShowLoadingTimer) {
@@ -161,6 +196,29 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({
       ),
     })
   }
+
+  const modelToShow = IS_FREEBUFF
+    ? selectedFreebuffModel
+    : (process.env.CODEBUFF_OPENAI_MODEL || 'default')
+
+  const modelAndTokens = `${modelToShow} (${calculatedTokens} tokens)`
+
+  footerItems.push({
+    key: 'model',
+    node: (
+      <text
+        attributes={TextAttributes.DIM}
+        style={{
+          wrapMode: 'none',
+          fg: theme.muted,
+          marginTop: 0,
+          marginBottom: 0,
+        }}
+      >
+        {modelAndTokens}
+      </text>
+    ),
+  })
   if (typeof credits === 'number' && credits > 0 && !IS_FREEBUFF) {
     footerItems.push({
       key: 'credits',

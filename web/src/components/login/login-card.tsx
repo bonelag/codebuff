@@ -98,7 +98,7 @@ export function LoginCard({ authCode }: { authCode?: string | null }) {
                 </CardFooter>
               </>
             ) : (
-              <SignInCardFooter />
+              <SignInCardFooter authCode={authCode} />
             )}
           </Card>
         </Suspense>
