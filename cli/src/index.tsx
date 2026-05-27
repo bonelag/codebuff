@@ -1,5 +1,9 @@
 #!/usr/bin/env bun
 
+// Load a portable .env next to the compiled binary before any module validates
+// or snapshots process.env.
+import './pre-init/load-sibling-env'
+
 // Embed tree-sitter.wasm into the bun-compile binary at a bunfs path the runtime
 // can find. Without this, web-tree-sitter resolves the wasm via require.resolve,
 // which (since 0.25.10's split exports map) returns the build-time absolute path
@@ -373,7 +377,13 @@ async function main(): Promise<void> {
       const apiKey = getAuthTokenDetails().token ?? ''
       const hasLocalModel = !!getCliEnv().CODEBUFF_OPENAI_BASE_URL
 
-      if (!apiKey && !hasLocalModel) {
+      if (hasLocalModel) {
+        setHasInvalidCredentials(false)
+        setRequireAuth(false)
+        return
+      }
+
+      if (!apiKey) {
         setRequireAuth(true)
         setHasInvalidCredentials(false)
         return

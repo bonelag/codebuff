@@ -6,7 +6,7 @@ src/db/migrations
 .env
 .env.*
 !.env.example
-
+dist-local
 # ctags
 tags
 

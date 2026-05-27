@@ -19,6 +19,11 @@ export type SdkEnv = BaseEnv & {
   CODEBUFF_RG_PATH?: string
   CODEBUFF_WASM_DIR?: string
 
+  // Local API / LLM bypass
+  CODEBUFF_OPENAI_BASE_URL?: string
+  CODEBUFF_OPENAI_API_KEY?: string
+  CODEBUFF_OPENAI_MODEL?: string
+
   // Build flags
   VERBOSE?: string
   OVERRIDE_TARGET?: string

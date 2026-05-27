@@ -67,6 +67,15 @@ function runCommand(
   }
 }
 
+function commandSupportsArg(command: string, arg: string): boolean {
+  const result = spawnSync(command, ['--help'], {
+    encoding: 'utf8',
+    stdio: 'pipe',
+  })
+  const output = `${result.stdout ?? ''}${result.stderr ?? ''}`
+  return output.includes(arg)
+}
+
 function getTargetInfo(): TargetInfo {
   if (OVERRIDE_TARGET && OVERRIDE_PLATFORM && OVERRIDE_ARCH) {
     return {
@@ -139,7 +148,7 @@ async function main() {
 
   // Ensure SDK assets exist before compiling the CLI
   log('Building SDK dependencies...')
-  runCommand('bun', ['run', '--cwd', '../sdk', 'build'], {
+  runCommand('bun', ['--cwd', '../sdk', 'run', 'build'], {
     cwd: cliRoot,
     env: process.env,
   })
@@ -401,7 +410,10 @@ async function ensureOpenTuiNativeBundle(targetInfo: TargetInfo) {
         '-C',
         extractDirForTar,
       ]
-      if (process.platform === 'win32') {
+      if (
+        process.platform === 'win32' &&
+        commandSupportsArg('tar', '--force-local')
+      ) {
         tarArgs.unshift('--force-local')
       }
 

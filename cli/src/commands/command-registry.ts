@@ -668,9 +668,11 @@ const ALL_COMMANDS: CommandDefinition[] = [
 
         const selectedModel = askUserResponse.answers[0].selectedOption || askUserResponse.answers[0].otherText
 
-        // Update .env file
-        const root = getProjectRoot()
-        const envPath = path.join(root, '.env')
+        // Update the runtime .env loaded next to the binary when present;
+        // fall back to the project .env in dev mode.
+        const envPath =
+          process.env.CODEBUFF_RUNTIME_ENV_PATH ??
+          path.join(getProjectRoot(), '.env')
         let envContent = ''
         if (fs.existsSync(envPath)) {
           envContent = fs.readFileSync(envPath, 'utf-8')

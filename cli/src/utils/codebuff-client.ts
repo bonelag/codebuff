@@ -49,8 +49,9 @@ export async function getCodebuffClient(): Promise<CodebuffClient | null> {
     let { token: apiKey } = getAuthTokenDetails()
     const env = getCliEnv()
 
-    // If using local model, inject a dummy key so the client doesn't complain about auth
-    if (!apiKey && env.CODEBUFF_OPENAI_BASE_URL) {
+    // Local model mode bypasses Codebuff auth entirely. Always use the dummy
+    // Codebuff key here so stale saved credentials do not hit backend run APIs.
+    if (env.CODEBUFF_OPENAI_BASE_URL) {
       apiKey = 'dummy-local-key'
     }
 

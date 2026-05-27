@@ -23,6 +23,11 @@ export const getSdkEnv = (): SdkEnv => ({
   CODEBUFF_RG_PATH: process.env.CODEBUFF_RG_PATH,
   CODEBUFF_WASM_DIR: process.env.CODEBUFF_WASM_DIR,
 
+  // Local API / LLM bypass
+  CODEBUFF_OPENAI_BASE_URL: process.env.CODEBUFF_OPENAI_BASE_URL,
+  CODEBUFF_OPENAI_API_KEY: process.env.CODEBUFF_OPENAI_API_KEY,
+  CODEBUFF_OPENAI_MODEL: process.env.CODEBUFF_OPENAI_MODEL,
+
   // Build flags
   VERBOSE: process.env.VERBOSE,
   OVERRIDE_TARGET: process.env.OVERRIDE_TARGET,

@@ -90,6 +90,7 @@ export const getProcessEnv = (): ProcessEnv => ({
   // Local API / LLM bypass
   CODEBUFF_OPENAI_BASE_URL: process.env.CODEBUFF_OPENAI_BASE_URL,
   CODEBUFF_OPENAI_API_KEY: process.env.CODEBUFF_OPENAI_API_KEY,
+  CODEBUFF_OPENAI_MODEL: process.env.CODEBUFF_OPENAI_MODEL,
 })
 
 /**

@@ -19,6 +19,7 @@ import {
   type User,
 } from '../utils/auth'
 import { resetCodebuffClient } from '../utils/codebuff-client'
+import { getCliEnv } from '../utils/env'
 import { logger as defaultLogger, loggerContext } from '../utils/logger'
 
 import type { GetUserInfoFromApiKeyFn } from '@codebuff/common/types/contracts/database'
@@ -132,13 +133,14 @@ export function useAuthQuery(deps: UseAuthQueryDeps = {}) {
     logger = defaultLogger,
   } = deps
 
+  const localBaseUrl = getCliEnv().CODEBUFF_OPENAI_BASE_URL
   const userCredentials = getUserCredentials()
   const apiKey = userCredentials?.authToken || getCiEnv().CODEBUFF_API_KEY || ''
 
   return useQuery({
     queryKey: authQueryKeys.validation(apiKey),
     queryFn: () => validateApiKey({ apiKey, getUserInfoFromApiKey, logger }),
-    enabled: !!apiKey,
+    enabled: !!apiKey && !localBaseUrl,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     // Retry only for retryable network errors (5xx, timeouts, etc.)
