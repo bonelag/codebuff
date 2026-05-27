@@ -35,6 +35,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const cliRoot = join(__dirname, '..')
 const repoRoot = dirname(cliRoot)
+const bunExecutable = process.execPath
 
 function log(message: string) {
   if (VERBOSE) {
@@ -141,14 +142,14 @@ async function main() {
 
   // Generate bundled agents file before compiling
   log('Generating bundled agents...')
-  runCommand('bun', ['run', 'scripts/prebuild-agents.ts'], {
+  runCommand(bunExecutable, ['run', 'scripts/prebuild-agents.ts'], {
     cwd: cliRoot,
     env: process.env,
   })
 
   // Ensure SDK assets exist before compiling the CLI
   log('Building SDK dependencies...')
-  runCommand('bun', ['--cwd', '../sdk', 'run', 'build'], {
+  runCommand(bunExecutable, ['--cwd', '../sdk', 'run', 'build'], {
     cwd: cliRoot,
     env: process.env,
   })
@@ -198,7 +199,7 @@ async function main() {
       .join(' ')}`,
   )
 
-  runCommand('bun', buildArgs, { cwd: cliRoot })
+  runCommand(bunExecutable, buildArgs, { cwd: cliRoot })
 
   // Ship tree-sitter.wasm as a sibling file next to the binary. Bun
   // --compile asset embedding is unreliable on Windows (every JS-level
