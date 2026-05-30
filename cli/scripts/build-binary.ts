@@ -37,6 +37,26 @@ const cliRoot = join(__dirname, '..')
 const repoRoot = dirname(cliRoot)
 const bunExecutable = process.execPath
 
+// Load root .env file if it exists, to inject NEXT_PUBLIC_* variables into process.env before building
+const rootEnvPath = join(repoRoot, '.env')
+if (existsSync(rootEnvPath)) {
+  const content = readFileSync(rootEnvPath, 'utf8')
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const firstEquals = trimmed.indexOf('=')
+    if (firstEquals === -1) continue
+    const key = trimmed.slice(0, firstEquals).trim()
+    let val = trimmed.slice(firstEquals + 1).trim()
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1)
+    }
+    if (!process.env[key]) {
+      process.env[key] = val
+    }
+  }
+}
+
 function log(message: string) {
   if (VERBOSE) {
     console.log(message)

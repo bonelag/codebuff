@@ -53,6 +53,7 @@ export type RouterParams = {
   ) => void
   setUser: (value: React.SetStateAction<User | null>) => void
   stopStreaming: () => void
+  onProjectChange?: (projectPath: string) => void
 }
 
 export type CommandResult = {
@@ -697,6 +698,167 @@ const ALL_COMMANDS: CommandDefinition[] = [
           ...prev,
           getSystemMessage(`Error fetching models: ${err.message}`),
         ])
+      }
+    },
+  }),
+  defineCommandWithArgs({
+    name: 'dir',
+    aliases: ['cd'],
+    handler: async (params, args) => {
+      const { getProjectRoot } = await import('../project-files')
+      const { AskUserBridge } = await import('@codebuff/common/utils/ask-user-bridge')
+      const fs = await import('fs')
+      const path = await import('path')
+
+      const currentRoot = getProjectRoot()
+      const trimmedArgs = args.trim()
+      let startPath = ''
+
+      params.saveToHistory(params.inputValue.trim())
+      clearInput(params)
+
+      if (trimmedArgs) {
+        let targetPath = trimmedArgs
+        if (!path.isAbsolute(targetPath)) {
+          targetPath = path.resolve(currentRoot, targetPath)
+        }
+
+        // Check if directory exists and is a directory
+        try {
+          const stats = fs.statSync(targetPath)
+          if (stats.isDirectory()) {
+            startPath = targetPath
+          } else {
+            params.setMessages((prev) => [
+              ...prev,
+              getSystemMessage(`Error: "${targetPath}" is not a directory.`),
+            ])
+            return
+          }
+        } catch (err) {
+          params.setMessages((prev) => [
+            ...prev,
+            getSystemMessage(`Error: Directory does not exist: "${targetPath}"`),
+          ])
+          return
+        }
+      } else {
+        // Step 1: Drive selection (on Windows)
+        if (process.platform === 'win32') {
+          const drives: string[] = []
+          for (let i = 65; i <= 90; i++) {
+            const drive = String.fromCharCode(i) + ':\\'
+            try {
+              if (fs.existsSync(drive)) {
+                drives.push(drive)
+              }
+            } catch {
+              // Ignore drive errors (e.g. empty optical drive)
+            }
+          }
+
+          if (drives.length === 0) {
+            startPath = 'C:\\'
+          } else {
+            const driveResponse = await AskUserBridge.request('cli-drive-selection', [
+              {
+                question: 'Select logical drive:',
+                header: 'Select Drive',
+                options: drives.map(d => ({ label: `[${d}]` })),
+                multiSelect: false,
+                submitOnChange: true,
+              } as any
+            ]) as any
+
+            if (driveResponse?.skipped || !driveResponse?.answers?.[0]?.selectedOption) {
+              params.setMessages((prev) => [
+                ...prev,
+                getSystemMessage('Directory selection cancelled.'),
+              ])
+              return
+            }
+
+            // Extract selected drive from e.g. "[F:\]" to "F:\"
+            const selectedOption = driveResponse.answers[0].selectedOption
+            startPath = selectedOption.slice(1, -1)
+          }
+        } else {
+          startPath = '/'
+        }
+      }
+
+      // Step 2: Interactive directory picker loop
+      let currentPath = startPath
+      while (true) {
+        let subdirs: string[] = []
+        try {
+          subdirs = fs.readdirSync(currentPath, { withFileTypes: true })
+            .filter(dirent => {
+              try {
+                // Filter files, hidden directories, system directories
+                return (
+                  dirent.isDirectory() &&
+                  !dirent.name.startsWith('.') &&
+                  !dirent.name.startsWith('$') &&
+                  dirent.name !== 'System Volume Information'
+                )
+              } catch {
+                return false
+              }
+            })
+            .map(dirent => dirent.name)
+        } catch (err) {
+          // Empty or permission denied
+        }
+
+        const options = [
+          { label: '📁 .. [Go Up]' },
+          ...subdirs.map(name => ({ label: `📁 ${name}` }))
+        ]
+
+        const selectionResponse = await AskUserBridge.request('cli-dir-selection', [
+          {
+            question: `Select directory (Current: ${currentPath}):`,
+            header: 'Change Directory',
+            options: options,
+            multiSelect: false,
+            submitOnChange: true,
+          } as any
+        ]) as any
+
+        if (selectionResponse?.skipped) {
+          params.setMessages((prev) => [
+            ...prev,
+            getSystemMessage('Directory selection cancelled.'),
+          ])
+          return
+        }
+
+        const selectedOption = selectionResponse?.answers?.[0]?.selectedOption
+
+        // If no option was checked but user clicked Submit, treat as confirming current directory (Final select)
+        if (!selectedOption || selectedOption === 'Skipped') {
+          if (params.onProjectChange) {
+            await params.onProjectChange(currentPath)
+            params.setMessages((prev) => [
+              ...prev,
+              getSystemMessage(`Switched directory to: ${currentPath}`),
+            ])
+          } else {
+            params.setMessages((prev) => [
+              ...prev,
+              getSystemMessage('Error: Changing directory is not supported in this context.'),
+            ])
+          }
+          return
+        }
+
+        if (selectedOption === '📁 .. [Go Up]') {
+          currentPath = path.dirname(currentPath)
+        } else {
+          const dirName = selectedOption.replace('📁 ', '')
+          currentPath = path.join(currentPath, dirName)
+        }
       }
     },
   }),

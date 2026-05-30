@@ -109,6 +109,7 @@ export const Chat = ({
   gitRoot,
   onSwitchToGitRoot,
   freebuffSession,
+  onProjectChange,
 }: {
   headerContent: React.ReactNode
   initialPrompt: string | null
@@ -125,6 +126,7 @@ export const Chat = ({
   gitRoot?: string | null
   onSwitchToGitRoot?: () => void
   freebuffSession: FreebuffSessionResponse | null
+  onProjectChange?: (projectPath: string) => void
 }) => {
   const [forceFileOnlyMentions, setForceFileOnlyMentions] = useState(false)
 
@@ -503,6 +505,7 @@ export const Chat = ({
           setMessages,
           setUser,
           stopStreaming,
+          onProjectChange,
         })
 
         return result

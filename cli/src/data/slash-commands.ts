@@ -180,6 +180,12 @@ const ALL_SLASH_COMMANDS: SlashCommand[] = [
     description: 'End your free session',
   },
   {
+    id: 'dir',
+    label: 'dir',
+    description: 'Change the current working directory',
+    aliases: ['cd'],
+  },
+  {
     id: 'model',
     label: 'model',
     description: 'Select a local LLM model (requires CODEBUFF_OPENAI_BASE_URL)',

@@ -150,6 +150,41 @@ export const MultipleChoiceForm: React.FC<MultipleChoiceFormProps> = ({
     [questions, openQuestion, focusSubmit],
   )
 
+  const formatAnswer = useCallback(
+    (
+      question: AskUserQuestion,
+      answer: AccordionAnswer | undefined,
+    ) => {
+      if (!answer) {
+        return { question: question.question, answer: 'Skipped' }
+      }
+
+      const selectedOptions = question.multiSelect
+        ? Array.from(answer.selectedIndices ?? [])
+            .map((idx) => getOptionLabel(question.options[idx]))
+            .filter(Boolean)
+        : answer.selectedIndex !== undefined
+          ? [getOptionLabel(question.options[answer.selectedIndex])]
+          : []
+
+      const customText =
+        answer.isCustom && (answer.customText?.trim().length ?? 0) > 0
+          ? (answer.customText ?? '').trim()
+          : ''
+
+      const parts = customText ? [...selectedOptions, customText] : selectedOptions
+      if (parts.length === 0) {
+        return { question: question.question, answer: 'Skipped' }
+      }
+
+      return {
+        question: question.question,
+        answer: question.multiSelect ? parts.join(', ') : parts[0],
+      }
+    },
+    [],
+  )
+
   // Handle selecting an option (single-select)
   const handleSelectOption = useCallback(
     (
@@ -204,6 +239,30 @@ export const MultipleChoiceForm: React.FC<MultipleChoiceFormProps> = ({
         return
       }
 
+      const question = questions[questionIndex]
+      if (question && (question as any).submitOnChange) {
+        const selectedOptions = question.multiSelect
+          ? []
+          : optionIndex !== CUSTOM_OPTION_INDEX && optionIndex !== undefined
+            ? [getOptionLabel(question.options[optionIndex])]
+            : []
+        
+        const formattedAnswer = {
+          question: question.question,
+          answer: selectedOptions[0] || 'Skipped'
+        }
+
+        const formattedAnswers = questions.map((q, idx) => {
+          if (idx === questionIndex) {
+            return formattedAnswer
+          }
+          return formatAnswer(q, answers.get(idx))
+        })
+
+        onSubmit(formattedAnswers)
+        return
+      }
+
       if (questionIndex < questions.length - 1) {
         openQuestion(questionIndex + 1, 0)
         return
@@ -213,7 +272,7 @@ export const MultipleChoiceForm: React.FC<MultipleChoiceFormProps> = ({
       setExpandedIndex(null)
       focusSubmit({ questionIndex, optionIndex })
     },
-    [questions, openQuestion, focusSubmit, setAnswerForQuestion, isTypingCustom],
+    [questions, openQuestion, focusSubmit, setAnswerForQuestion, isTypingCustom, formatAnswer, answers, onSubmit],
   )
 
   // Handle toggling an option (multi-select)
@@ -259,40 +318,6 @@ export const MultipleChoiceForm: React.FC<MultipleChoiceFormProps> = ({
     [],
   )
 
-  const formatAnswer = useCallback(
-    (
-      question: AskUserQuestion,
-      answer: AccordionAnswer | undefined,
-    ) => {
-      if (!answer) {
-        return { question: question.question, answer: 'Skipped' }
-      }
-
-      const selectedOptions = question.multiSelect
-        ? Array.from(answer.selectedIndices ?? [])
-            .map((idx) => getOptionLabel(question.options[idx]))
-            .filter(Boolean)
-        : answer.selectedIndex !== undefined
-          ? [getOptionLabel(question.options[answer.selectedIndex])]
-          : []
-
-      const customText =
-        answer.isCustom && (answer.customText?.trim().length ?? 0) > 0
-          ? (answer.customText ?? '').trim()
-          : ''
-
-      const parts = customText ? [...selectedOptions, customText] : selectedOptions
-      if (parts.length === 0) {
-        return { question: question.question, answer: 'Skipped' }
-      }
-
-      return {
-        question: question.question,
-        answer: question.multiSelect ? parts.join(', ') : parts[0],
-      }
-    },
-    [],
-  )
 
   // Handle submit
   const handleSubmit = useCallback(() => {
@@ -494,6 +519,16 @@ export const MultipleChoiceForm: React.FC<MultipleChoiceFormProps> = ({
       setSubmitHovered(false)
     }
   }, [terminalFocused])
+
+  // Reset state when questions change to avoid stale answers during directory browsing
+  useEffect(() => {
+    setAnswers(new Map())
+    setExpandedIndex(questions.length > 0 ? 0 : null)
+    setFocusedOptionIndex(questions.length > 0 ? 0 : null)
+    setFocusedQuestionIndex(0)
+    setSubmitFocused(false)
+    setIsTypingCustom(false)
+  }, [questions])
 
   return (
     <box style={{ flexDirection: 'column', padding: 0, width: '100%' }}>

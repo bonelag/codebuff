@@ -324,6 +324,7 @@ export const App = ({
       onSelectChat={handleResumeChat}
       onCancelChatHistory={closeChatHistory}
       onNewChat={handleNewChat}
+      onProjectChange={onProjectChange}
     />
   )
 }
@@ -348,6 +349,7 @@ interface AuthedSurfaceProps {
   onSelectChat: (chatId: string) => void
   onCancelChatHistory: () => void
   onNewChat: () => void
+  onProjectChange: (projectPath: string) => void
 }
 
 /**
@@ -375,6 +377,7 @@ const AuthedSurface = ({
   onSelectChat,
   onCancelChatHistory,
   onNewChat,
+  onProjectChange,
 }: AuthedSurfaceProps) => {
   const { session, error: sessionError } = useFreebuffSession()
 
@@ -442,6 +445,7 @@ const AuthedSurface = ({
       gitRoot={gitRoot}
       onSwitchToGitRoot={onSwitchToGitRoot}
       freebuffSession={session}
+      onProjectChange={onProjectChange}
     />
   )
 }
